@@ -10,7 +10,7 @@ from PIL import Image
 from io import BytesIO
 
 # Logging config
-#logging.basicConfig(filename='analyze-local-image.log',level=logging.DEBUG)
+#logging.basicConfig(filename='pi-smart-doorbell.log',level=logging.DEBUG)
 
 # Get the filename from the argument passed from motion. If not specified use last file for testing
 if len(sys.argv) >= 2:
