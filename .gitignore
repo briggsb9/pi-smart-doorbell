@@ -2,3 +2,4 @@ config.py
 test-analyze-local-image.py
 analyze-local-image.log
 pi-smart-doorbell.log
+__pycache__/
