@@ -18,3 +18,5 @@ A smart doorbell that takes a snapshot when motion is detected, and then confirm
 * Telegram App installed registered on your mobile device https://telegram.org/apps
 * Telegram bot. Create using this guide https://core.telegram.org/bots#6-botfather
 * Telegram group with the bot added
+
+TBC
