@@ -9,6 +9,10 @@ A smart doorbell that takes a snapshot when motion is detected, and then confirm
 
 ![Image of components](https://github.com/SGGIRBS/pi-smart-doorbell/blob/master/images/smartcam.png)
 
+# Example
+
+![Example message](https://github.com/SGGIRBS/pi-smart-doorbell/blob/master/images/example-message.png)
+
 # Prerequisites
 * Raspberry Pi and power near your front door. Ether using the pi POE hat or the standard adaptor
 * Raspberry Pi camera module with night vision and a long enough cable 
@@ -19,4 +23,3 @@ A smart doorbell that takes a snapshot when motion is detected, and then confirm
 * Telegram bot. Create using this guide https://core.telegram.org/bots#6-botfather
 * Telegram group with the bot added
 
-TBC
