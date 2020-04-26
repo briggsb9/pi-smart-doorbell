@@ -3,7 +3,7 @@
 A smart doorbell that takes a snapshot when motion is detected, and then confirms if the image contains a person before sending a message to your mobile. 
 
 # Architecture
-* The workflow is provided by a couple of python scripts set to run inside the motion detection software 'Motion'
+* The workflow is provided by a couple of python scripts set to run inside the motion detection software 'Motion', which also provides the live stream
 * Azure Computer Vision provides the object detection to confirm a human presense
 * A Telegram bot provides the messaging endpoint
 
@@ -23,3 +23,5 @@ A smart doorbell that takes a snapshot when motion is detected, and then confirm
 * Telegram bot. Create using this guide https://core.telegram.org/bots#6-botfather
 * Telegram group with the bot added
 
+# Setup
+Coming soon...
