@@ -14,7 +14,7 @@ A smart doorbell that takes a snapshot when motion is detected, and then confirm
 ![Example message](https://github.com/SGGIRBS/pi-smart-doorbell/blob/master/images/example-message-small.png)
 
 # Prerequisites
-* Raspberry Pi and power near your front door. Ether using the pi POE hat or the standard adaptor
+* Raspberry Pi and power near your front door. Ether using the pi POE hat or the standard power adaptor
 * Raspberry Pi camera module with night vision and a long enough cable 
 * Motion detection software for Linux. Motion https://github.com/Motion-Project
 * Access to Azure. Sign up for a free Azure account here https://azure.microsoft.com/en-gb/free/
