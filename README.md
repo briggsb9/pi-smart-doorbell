@@ -11,7 +11,7 @@ A smart doorbell that takes a snapshot when motion is detected, and then confirm
 
 # Example
 
-![Example message](https://github.com/SGGIRBS/pi-smart-doorbell/blob/master/images/example-message.png)
+![Example message](https://github.com/SGGIRBS/pi-smart-doorbell/blob/master/images/example-message-small.png)
 
 # Prerequisites
 * Raspberry Pi and power near your front door. Ether using the pi POE hat or the standard adaptor
