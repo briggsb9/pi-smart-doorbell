@@ -1,0 +1,3 @@
+Remove purple image issues with latest firmware
+
+sudo vcdbg set awb_mode 0

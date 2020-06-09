@@ -38,25 +38,25 @@ response = requests.post(
     analyze_url, headers=headers, params=params, data=image_data)
 response.raise_for_status()
 
-# Output the response
+# Output the response to logs
 analysis = response.json()
-print(analysis)
 logging.info(analysis)
 
-# Check results for people
+# Create a list of objects detected
 object_list = []
 for data in analysis['objects']:
     result = data['object']
     object_list.append(result)
 
-# Construct the Telegram enpoint
-telegram_url = f'https://api.telegram.org/bot{config.token}'
-send_message_url = telegram_url + "/sendMessage"
-send_photo_url = telegram_url + "/sendPhoto"
+# Output the object list to logs
+logging.info(object_list)
 
-# Send message if person, animal or mammal found in image
-
+# Send message to app if person, animal or mammal found in image
 if object_list == ['person'] or object_list == ['animal'] or object_list == ['mammal']:
+    # Construct the Telegram enpoint
+    telegram_url = f'https://api.telegram.org/bot{config.token}'
+    send_message_url = telegram_url + "/sendMessage"
+    send_photo_url = telegram_url + "/sendPhoto"
     # Send message
     tg_params = {'chat_id': config.chat_id, 'text': config.message}
     response = requests.post(
