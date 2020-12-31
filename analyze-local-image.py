@@ -21,12 +21,12 @@ logging.basicConfig(
 # Get the filename from the argument passed from motion. If not specified use last file for testing
 if len(sys.argv) >= 2:
     image_path = sys.argv[1]
-    logging.info('Using passed argument for image path' + image_path)
+    logging.info('Using passed argument for image path: ' + image_path)
 else:
     #image_path = '/home/pi/computervision/44-20200417134311-19.jpg'
     list_of_files = glob.glob('/var/lib/motion/*-snapshot.jpg')
     image_path = max(list_of_files, key=os.path.getctime)
-    logging.info('No argument found, using test image' + image_path)
+    logging.info('No argument found, using test image: ' + image_path)
 
 # Read the image into a byte array and send to computer vision to confirm if person
 analyze_url = config.computer_vision_endpoint + "vision/v2.1/analyze"
@@ -49,10 +49,19 @@ for data in analysis['objects']:
     object_list.append(result)
 
 # Output the object list to logs
-logging.info(object_list)
+logging.info("Object List: {}".format(', '.join(map(str, object_list))))
 
-# Send message to app if person, animal or mammal found in image
-if object_list == ['person'] or object_list == ['animal'] or object_list == ['mammal']:
+# Create a list of tags detected
+tag_list = []
+for data in analysis['tags']:
+    result = data['name']
+    tag_list.append(result)
+
+# Output the object list to logs
+logging.info("Tag List: {}".format(', '.join(map(str, tag_list))))
+
+# Send notifications if person, animal or mammal found in image.
+if object_list == ['person'] or object_list == ['animal'] or object_list == ['mammal'] or tag_list == ['person']:
     # Construct the Telegram enpoint
     telegram_url = f'https://api.telegram.org/bot{config.token}'
     send_message_url = telegram_url + "/sendMessage"
@@ -68,6 +77,7 @@ if object_list == ['person'] or object_list == ['animal'] or object_list == ['ma
     response = requests.post(
         send_photo_url, params=tg_params, files=tg_image_data)
     response.raise_for_status()
-    logging.info('Matching object found in List')
+    logging.info('Matching object/person found in List')
 else:
     logging.info('No match found. Not sending message')
+
