@@ -18,6 +18,10 @@ logging.basicConfig(
     level=logging.INFO,
     datefmt='%d-%m-%Y %H:%M:%S')
 
+# Define a function to allow searching for results (objects, tag, etc)
+def all_exist(avalue, bvalue):
+    return all(any(x in y for y in bvalue) for x in avalue)
+
 # Get the filename from the argument passed from motion. If not specified use last file for testing
 if len(sys.argv) >= 2:
     image_path = sys.argv[1]
@@ -61,7 +65,7 @@ for data in analysis['tags']:
 logging.info("Tag List: {}".format(', '.join(map(str, tag_list))))
 
 # Send notifications if person, animal or mammal found in image.
-if object_list == ['person'] or object_list == ['animal'] or object_list == ['mammal'] or tag_list == ['person']:
+if (all_exist(['person', 'animal', 'mammal'], object_list)) or (all_exist(['person', 'clothing'], tag_list)): #tag_list == ['person'] or object_list == ['animal'] or object_list == ['mammal'] or tag_list == ['person']:
     # Construct the Telegram enpoint
     telegram_url = f'https://api.telegram.org/bot{config.token}'
     send_message_url = telegram_url + "/sendMessage"
