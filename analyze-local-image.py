@@ -13,14 +13,10 @@ from io import BytesIO
 
 # Logging config
 logging.basicConfig(
-    filename=config.logfile,
+    filename='/home/pi/pi-smart-doorbell/test-pi-smart-doorbell.log',
     format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,
     datefmt='%d-%m-%Y %H:%M:%S')
-
-# Define a function to allow searching for results (objects, tag, etc)
-def all_exist(avalue, bvalue):
-    return all(any(x in y for y in bvalue) for x in avalue)
 
 # Get the filename from the argument passed from motion. If not specified use last file for testing
 if len(sys.argv) >= 2:
@@ -42,30 +38,56 @@ response = requests.post(
     analyze_url, headers=headers, params=params, data=image_data)
 response.raise_for_status()
 
-# Output the response to logs
+# Output the full response to logs
 analysis = response.json()
 logging.info(analysis)
-
-# Create a list of objects detected
-object_list = []
-for data in analysis['objects']:
-    result = data['object']
-    object_list.append(result)
-
-# Output the object list to logs
-logging.info("Object List: {}".format(', '.join(map(str, object_list))))
 
 # Create a list of tags detected
 tag_list = []
 for data in analysis['tags']:
     result = data['name']
     tag_list.append(result)
+logging.debug(tag_list)
 
-# Output the object list to logs
+# Output a friendly tag list to logs
 logging.info("Tag List: {}".format(', '.join(map(str, tag_list))))
 
-# Send notifications if person, animal or mammal found in image.
-if (all_exist(['person', 'animal', 'mammal'], object_list)) or (all_exist(['person', 'clothing'], tag_list)): #tag_list == ['person'] or object_list == ['animal'] or object_list == ['mammal'] or tag_list == ['person']:
+# Create a list of objects detected
+object_list = []
+for data in analysis['objects']:
+    result = data['object']
+    object_list.append(result)
+logging.debug(object_list)
+
+# Output a friendly object list to logs
+logging.info("Object List: {}".format(', '.join(map(str, object_list))))
+
+# Define the items to show as a positive result
+tag_search = ['person','clothing']
+object_search = ['person', 'animal', 'mammal']
+
+
+# Search for the items in the results
+tag_result = any(elem in tag_list for elem in tag_search)
+object_result = any(elem in object_list for elem in object_search)
+
+# Search for match in results.
+match = False
+
+if tag_result:
+    match = True
+    logging.info('Matching tag found in List')
+else:
+    logging.info('No matching tag found')
+
+if object_result:
+    match = True
+    logging.info('Matching object found in List')
+else:
+    logging.info('No matching object found')
+
+# Send message if results found
+if match == True:
     # Construct the Telegram enpoint
     telegram_url = f'https://api.telegram.org/bot{config.token}'
     send_message_url = telegram_url + "/sendMessage"
@@ -81,7 +103,6 @@ if (all_exist(['person', 'animal', 'mammal'], object_list)) or (all_exist(['pers
     response = requests.post(
         send_photo_url, params=tg_params, files=tg_image_data)
     response.raise_for_status()
-    logging.info('Matching object/person found in List')
+    logging.info('Message sent')
 else:
-    logging.info('No match found. Not sending message')
-
+    logging.info('No message sent')
