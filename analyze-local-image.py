@@ -66,7 +66,6 @@ logging.info("Object List: {}".format(', '.join(map(str, object_list))))
 tag_search = ['person','clothing']
 object_search = ['person', 'animal', 'mammal']
 
-
 # Search for the items in the results
 tag_result = any(elem in tag_list for elem in tag_search)
 object_result = any(elem in object_list for elem in object_search)
