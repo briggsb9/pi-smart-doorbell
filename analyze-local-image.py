@@ -13,7 +13,7 @@ from io import BytesIO
 
 # Logging config
 logging.basicConfig(
-    filename='/home/pi/pi-smart-doorbell/test-pi-smart-doorbell.log',
+    filename=config.logfile,
     format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,
     datefmt='%d-%m-%Y %H:%M:%S')
