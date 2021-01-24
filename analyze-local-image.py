@@ -33,7 +33,7 @@ analyze_url = config.computer_vision_endpoint + "vision/v2.1/analyze"
 image_data = open(image_path, 'rb').read()
 headers = {'Ocp-Apim-Subscription-Key': config.computer_vision_subscription_key,
            'Content-Type': 'application/octet-stream'}
-params = {'visualFeatures': 'Tags,Faces,Objects'}
+params = {'visualFeatures': 'Tags,Faces,Objects,Description'}
 response = requests.post(
     analyze_url, headers=headers, params=params, data=image_data)
 response.raise_for_status()
@@ -62,13 +62,25 @@ logging.debug(object_list)
 # Output a friendly object list to logs
 logging.info("Object List: {}".format(', '.join(map(str, object_list))))
 
+# Create a list of tags in the description detected
+description_list = []
+for data in analysis['description']['tags']:
+    result = data
+    description_list.append(result)
+logging.debug(description_list)
+
+# Output a friendly object list to logs
+logging.info("Description List: {}".format(', '.join(map(str, description_list))))
+
 # Define the items to show as a positive result
 tag_search = ['person','clothing']
 object_search = ['person', 'animal', 'mammal']
+description_search = ['man', 'standing', 'holding']
 
 # Search for the items in the results
 tag_result = any(elem in tag_list for elem in tag_search)
 object_result = any(elem in object_list for elem in object_search)
+description_result = any(elem in description_list for elem in description_search)
 
 # Search for match in results.
 match = False
@@ -85,6 +97,12 @@ if object_result:
 else:
     logging.info('No matching object found')
 
+if description_result:
+    match = True
+    logging.info('Matching description found in List')
+else:
+    logging.info('No matching description found')
+    
 # Send message if results found
 if match == True:
     # Construct the Telegram enpoint
