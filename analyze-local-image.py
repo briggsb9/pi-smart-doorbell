@@ -97,11 +97,11 @@ if object_result:
 else:
     logging.info('No matching object found')
 
-if description_result:
-    match = True
-    logging.info('Matching description found in List')
-else:
-    logging.info('No matching description found')
+# if description_result:
+#    match = True
+#    logging.info('Matching description found in List')
+#else:
+#    logging.info('No matching description found')
     
 # Send message if results found
 if match == True:
