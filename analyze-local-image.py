@@ -114,12 +114,13 @@ if match == True:
     response = requests.post(
     	send_message_url, params=tg_params)
     response.raise_for_status()
+    logging.info('Message sent')
     # Send Photo
     tg_image_data = {'photo': open(image_path, 'rb')}
     tg_params = {'chat_id': config.chat_id}
     response = requests.post(
         send_photo_url, params=tg_params, files=tg_image_data)
     response.raise_for_status()
-    logging.info('Message sent')
+    logging.info('Photo sent')
 else:
     logging.info('No message sent')
