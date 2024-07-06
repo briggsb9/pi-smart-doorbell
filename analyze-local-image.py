@@ -1,126 +1,134 @@
 #!/usr/bin/env python3
 
-import config
 import os
-import json
 import sys
-import requests
 import glob
 import logging
-import matplotlib.pyplot as plt
-from PIL import Image
-from io import BytesIO
+import requests
+import config
 
-# Logging config
+# Logging configuration
 logging.basicConfig(
     filename=config.logfile,
     format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,
-    datefmt='%d-%m-%Y %H:%M:%S')
+    datefmt='%d-%m-%Y %H:%M:%S'
+)
 
-# Get the filename from the argument passed from motion. If not specified use last file for testing
-if len(sys.argv) >= 2:
-    image_path = sys.argv[1]
-    logging.info('Using passed argument for image path: ' + image_path)
-else:
-    #image_path = '/home/pi/computervision/44-20200417134311-19.jpg'
-    list_of_files = glob.glob('/var/lib/motion/*-snapshot.jpg')
-    image_path = max(list_of_files, key=os.path.getctime)
-    logging.info('No argument found, using test image: ' + image_path)
+# Create a logger object
+logger = logging.getLogger(__name__)
 
-# Read the image into a byte array and send to computer vision to confirm if person
-analyze_url = config.computer_vision_endpoint + "vision/v2.1/analyze"
-image_data = open(image_path, 'rb').read()
-headers = {'Ocp-Apim-Subscription-Key': config.computer_vision_subscription_key,
-           'Content-Type': 'application/octet-stream'}
-params = {'visualFeatures': 'Tags,Faces,Objects,Description'}
-response = requests.post(
-    analyze_url, headers=headers, params=params, data=image_data)
-response.raise_for_status()
+def get_image_path():
+    """
+    Determines the image path either from the command-line argument
+    or by finding the latest image file in a specific directory.
+    Returns the determined image path or None if no images found.
+    """
+    if len(sys.argv) >= 2:
+        image_path = sys.argv[1]
+        logger.info(f'Using passed argument for image path: {image_path}')
+    else:
+        directory_path = '/var/lib/motion/*-snapshot.jpg'
+        list_of_files = glob.glob(directory_path)
+        if list_of_files:
+            image_path = max(list_of_files, key=os.path.getctime)
+            logger.info(f'No argument found, using latest image: {image_path}')
+        else:
+            logger.error('No images found in the directory.')
+            return None
+    return image_path
 
-# Output the full response to logs
-analysis = response.json()
-logging.info(analysis)
+def analyze_image(image_path):
+    """
+    Analyzes an image by sending it to a computer vision API and returns the analysis result.
+    Parameters:
+    - image_path: The path to the image file to be analyzed.
+    Returns:
+    - analysis: The JSON response from the computer vision API or None if an error occurs.
+    """
+    try:
+        analyze_url = f"{config.computer_vision_endpoint}vision/v2.1/analyze"
+        with open(image_path, 'rb') as image_data:
+            headers = {
+                'Ocp-Apim-Subscription-Key': config.computer_vision_subscription_key,
+                'Content-Type': 'application/octet-stream'
+            }
+            params = {'visualFeatures': 'Tags,Faces,Objects,Description'}
+            response = requests.post(analyze_url, headers=headers, params=params, data=image_data)
+            response.raise_for_status()
+            return response.json()
+    except requests.exceptions.RequestException as e:
+        logger.error(f'Error sending request to Computer Vision API: {e}')
+        return None
 
-# Create a list of tags detected
-tag_list = []
-for data in analysis['tags']:
-    result = data['name']
-    tag_list.append(result)
-logging.debug(tag_list)
+def parse_analysis_and_search(analysis):
+    """
+    Parses the analysis JSON to extract tags, objects, and description tags,
+    and searches for predefined items within these categories.
+    Parameters:
+    - analysis: The JSON response from the computer vision API.
+    Returns:
+    - match: Boolean indicating whether any of the predefined items were found.
+    """
+    tag_list = [data['name'] for data in analysis.get('tags', [])]
+    object_list = [data['object'] for data in analysis.get('objects', [])]
+    description_list = analysis.get('description', {}).get('tags', [])
 
-# Output a friendly tag list to logs
-logging.info("Tag List: {}".format(', '.join(map(str, tag_list))))
+    tag_search = ['person', 'clothing']
+    object_search = ['person', 'animal', 'mammal']
+    description_search = ['man', 'standing', 'holding']
 
-# Create a list of objects detected
-object_list = []
-for data in analysis['objects']:
-    result = data['object']
-    object_list.append(result)
-logging.debug(object_list)
+    tag_result = any(tag in tag_list for tag in tag_search)
+    object_result = any(obj in object_list for obj in object_search)
+    description_result = any(desc in description_list for desc in description_search)
 
-# Output a friendly object list to logs
-logging.info("Object List: {}".format(', '.join(map(str, object_list))))
+    return tag_result or object_result or description_result
 
-# Create a list of tags in the description detected
-description_list = []
-for data in analysis['description']['tags']:
-    result = data
-    description_list.append(result)
-logging.debug(description_list)
-
-# Output a friendly object list to logs
-logging.info("Description List: {}".format(', '.join(map(str, description_list))))
-
-# Define the items to show as a positive result
-tag_search = ['person','clothing']
-object_search = ['person', 'animal', 'mammal']
-description_search = ['man', 'standing', 'holding']
-
-# Search for the items in the results
-tag_result = any(elem in tag_list for elem in tag_search)
-object_result = any(elem in object_list for elem in object_search)
-description_result = any(elem in description_list for elem in description_search)
-
-# Search for match in results.
-match = False
-
-if tag_result:
-    match = True
-    logging.info('Matching tag found in List')
-else:
-    logging.info('No matching tag found')
-
-if object_result:
-    match = True
-    logging.info('Matching object found in List')
-else:
-    logging.info('No matching object found')
-
-# if description_result:
-#    match = True
-#    logging.info('Matching description found in List')
-#else:
-#    logging.info('No matching description found')
-    
-# Send message if results found
-if match == True:
-    # Construct the Telegram enpoint
+def send_telegram_message(message, image_path):
+    """
+    Sends a message and photo to Telegram.
+    Parameters:
+    - message: The text message to be sent.
+    - image_path: The path to the image file to be sent.
+    """
     telegram_url = f'https://api.telegram.org/bot{config.token}'
-    send_message_url = telegram_url + "/sendMessage"
-    send_photo_url = telegram_url + "/sendPhoto"
-    # Send message
-    tg_params = {'chat_id': config.chat_id, 'text': config.message}
-    response = requests.post(
-    	send_message_url, params=tg_params)
-    response.raise_for_status()
-    logging.info('Message sent')
-    # Send Photo
-    tg_image_data = {'photo': open(image_path, 'rb')}
-    tg_params = {'chat_id': config.chat_id}
-    response = requests.post(
-        send_photo_url, params=tg_params, files=tg_image_data)
-    response.raise_for_status()
-    logging.info('Photo sent')
-else:
-    logging.info('No message sent')
+    send_message_url = f'{telegram_url}/sendMessage'
+    send_photo_url = f'{telegram_url}/sendPhoto'
+
+    try:
+        tg_params = {'chat_id': config.chat_id, 'text': message}
+        response = requests.post(send_message_url, params=tg_params)
+        response.raise_for_status()
+        logger.info('Message sent')
+
+        with open(image_path, 'rb') as image_file:
+            tg_image_data = {'photo': image_file}
+            tg_params = {'chat_id': config.chat_id}
+            response = requests.post(send_photo_url, params=tg_params, files=tg_image_data)
+            response.raise_for_status()
+        logger.info('Photo sent')
+    except requests.exceptions.RequestException as e:
+        logger.error(f'Error sending Telegram message: {e}')
+
+def main():
+    image_path = get_image_path()
+    if not image_path:
+        return
+
+    analysis = analyze_image(image_path)
+    if not analysis:
+        return
+
+    try:
+        match = parse_analysis_and_search(analysis)
+
+        if match:
+            logger.info('Matching item found in analysis results.')
+            send_telegram_message(config.message, image_path)
+        else:
+            logger.info('No matching item found in analysis results. No message sent.')
+    except Exception as e:
+        logger.error(f'Error occurred: {e}')
+
+if __name__ == '__main__':
+    main()
