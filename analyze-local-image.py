@@ -162,10 +162,10 @@ def upload_to_blob_storage(file_path):
         with open(file_path, "rb") as data:
             blob_client.upload_blob(data)
         
-        logger.info(f"Uploaded {file_path} to Azure Blob Storage using SAS token from config")
+        logger.info(f"Uploaded {file_path} to Azure Blob")
     
     except Exception as e:
-        logger.error(f"Error uploading to Azure Blob Storage with SAS from config: {e}")
+        logger.error(f"Error uploading to Azure Blob Storage: {e}")
 
 def main():
     image_path = get_image_path()
