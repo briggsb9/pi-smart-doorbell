@@ -131,7 +131,6 @@ def send_telegram_message(message, image_path):
     retry_strategy = Retry(
         total=3,  # Total number of retries
         status_forcelist=[502, 503, 504],  # Status codes to retry
-        allowed_methods=["POST"],  # HTTP methods to retry
         backoff_factor=1  # Backoff factor to apply between attempts
     )
 
