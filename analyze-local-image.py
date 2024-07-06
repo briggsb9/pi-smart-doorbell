@@ -62,7 +62,7 @@ def analyze_image(image_path):
             # Analyze the image
             analysis = client.analyze_image_in_stream(image_data, visual_features=visual_features)
         logger.info(analysis)
-        return analysis.as_dict()
+        return analysis
     except FileNotFoundError as e:
         logger.error(f'Image file not found: {image_path}. Error: {e}')
         return None
