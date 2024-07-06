@@ -82,14 +82,14 @@ def parse_analysis_and_search(analysis):
     Returns:
     - match: Boolean indicating whether any of the predefined items were found.
     """
-    tag_list = [data['name'] for data in analysis.get('tags', [])]
-    object_list = [data['object'] for data in analysis.get('objects', [])]
-    description_list = analysis.get('description', {}).get('tags', [])
+    tag_list = [tag.name for tag in analysis.tags]
+    object_list = [obj.object_property for obj in analysis.objects]
+    description_list = analysis.description.tags
 
     # Output a friendly list to logs for easier debugging
-    logger.info("Tag List: {}".format(', '.join(map(str, tag_list))))
-    logger.info("Object List: {}".format(', '.join(map(str, object_list))))
-    logger.info("Description List: {}".format(', '.join(map(str, description_list))))
+    logger.info("Tag List: {}".format(', '.join(tag_list)))
+    logger.info("Object List: {}".format(', '.join(object_list)))
+    logger.info("Description List: {}".format(', '.join(description_list)))
 
     tag_search = ['person', 'clothing']
     object_search = ['person', 'animal', 'mammal']
