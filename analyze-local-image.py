@@ -56,7 +56,9 @@ def analyze_image(image_path):
             params = {'visualFeatures': 'Tags,Faces,Objects,Description'}
             response = requests.post(analyze_url, headers=headers, params=params, data=image_data)
             response.raise_for_status()
-            return response.json()
+            analysis = response.json()
+            logging.info(analysis)
+            return analysis
     except requests.exceptions.RequestException as e:
         logger.error(f'Error sending request to Computer Vision API: {e}')
         return None
@@ -73,6 +75,11 @@ def parse_analysis_and_search(analysis):
     tag_list = [data['name'] for data in analysis.get('tags', [])]
     object_list = [data['object'] for data in analysis.get('objects', [])]
     description_list = analysis.get('description', {}).get('tags', [])
+
+    # Output a friendly list to logs for easier debugging
+    logging.info("Tag List: {}".format(', '.join(map(str, tag_list))))
+    logging.info("Object List: {}".format(', '.join(map(str, object_list))))
+    logging.info("Description List: {}".format(', '.join(map(str, description_list))))
 
     tag_search = ['person', 'clothing']
     object_search = ['person', 'animal', 'mammal']
