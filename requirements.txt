@@ -1,0 +1,5 @@
+azure-cognitiveservices-vision-computervision
+azure-storage-blob
+msrestazure
+logging
+requests
