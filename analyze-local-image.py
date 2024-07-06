@@ -61,7 +61,22 @@ def analyze_image(image_path):
         with open(image_path, "rb") as image_data:
             # Analyze the image
             analysis = client.analyze_image_in_stream(image_data, visual_features=visual_features)
-        logger.info(analysis)
+        # Log tags
+        if analysis.tags:
+            tag_names = [tag.name for tag in analysis.tags]
+            logger.info(f"Tags: {tag_names}")
+
+        # Log description captions and tags
+        if analysis.description:
+            captions = [caption.text for caption in analysis.description.captions]
+            description_tags = analysis.description.tags
+            logger.info(f"Description Captions: {captions}")
+            logger.info(f"Description Tags: {description_tags}")
+
+        # Log detected objects
+        if analysis.objects:
+            objects_info = [{"object": obj.object_property, "confidence": obj.confidence} for obj in analysis.objects]
+            logger.info(f"Objects: {objects_info}")
         return analysis
     except FileNotFoundError as e:
         logger.error(f'Image file not found: {image_path}. Error: {e}')
